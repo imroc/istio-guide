@@ -39,3 +39,17 @@ $ kubectl -n debug exec debug-6fd7477c9d-brqmq -c istio-proxy -- curl -sS istiod
 ```bash
 kubectl -n test exec -c istio-proxy htmall-6657db8f8f-l74qm -- curl -sS localhost:15090/stats/prometheus
 ```
+
+## 查看 envoy 配置
+
+导出 envoy 配置:
+
+```bash
+kubectl exec -it -c istio-proxy $POD_NAME -- curl 127.0.0.1:15000/config_dump > dump.json
+```
+
+导出 envoy 全量配置(包含 EDS):
+
+```bash
+kubectl exec -it -c istio-proxy $POD_NAME -- curl 127.0.0.1:15000/config_dump?include_eds > dump.json
+```
