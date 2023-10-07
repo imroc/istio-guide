@@ -24,6 +24,18 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: '入门',
+      collapsed: true,
+      link: {
+        type: 'generated-index',
+        slug: '/intro',
+      },
+      items: [
+        'intro/service-governance',
+      ],
+    },
+    {
+      type: 'category',
       label: '最佳实践',
       collapsed: true,
       link: {
