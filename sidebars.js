@@ -15,7 +15,13 @@
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
   istioSidebar: [
-    'README',
+    {
+      type: "doc",
+      id: "README",
+      customProps: {
+        slug: "/"
+      }
+    },
     {
       type: 'category',
       label: '最佳实践',
