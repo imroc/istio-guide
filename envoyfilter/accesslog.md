@@ -16,7 +16,7 @@ kind: EnvoyFilter
 metadata:
   name: enable-accesslog-json-format
   # highlight-next-line
-  namespace: mesh-test # 只为 test 命名空间开启 accesslog，改为 istio-system 表示作用于所有命名空间
+  namespace: test # 只为 test 命名空间开启 accesslog，若改为 istio-system 表示作用于所有命名空间
 spec:
   # highlight-start
   workloadSelector: # 精确到指定的 workload，若不需要可去掉
@@ -80,7 +80,7 @@ kind: EnvoyFilter
 metadata:
   name: enable-accesslog-text-format
   # highlight-next-line
-  namespace: mesh-test # 只为 test 命名空间开启 accesslog，改为 istio-system 表示作用于所有命名空间
+  namespace: test # 只为 test 命名空间开启 accesslog，若改为 istio-system 表示作用于所有命名空间
 spec:
   # highlight-start
   workloadSelector: # 精确到指定的 workload，若不需要可去掉
@@ -115,6 +115,509 @@ spec:
 
 </Tabs>
 
+## accesslog 打印 header 和 body
+
+在排障的时候，如果希望将请求头、请求体、响应头或响应体打印出来进行调试，这时候可通过 EnvoyFilter 动态来启用：
+
+<Tabs>
+<TabItem value="all-header-body" label="打印所有 header 和 body">
+
+<Tabs>
+<TabItem value="all-header-body-yaml" label="EnvoyFilter">
+
+```yaml showLineNumbers title="accesslog-print-header-body.yaml"
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: accesslog-print-header-body
+  # highlight-next-line
+  namespace: test # 只为 test 命名空间开启 accesslog，若改为 istio-system 表示作用于所有命名空间
+spec:
+  # highlight-start
+  workloadSelector: # 通常打印 header 和 body 用于调试，可指定改配置只作用于指定 workload，避免影响其它不需要调试的 workload 的性能
+    labels:
+      app: nginx
+  # highlight-end
+  configPatches:
+    - applyTo: NETWORK_FILTER
+      match:
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.filters.network.http_connection_manager"
+      patch:
+        operation: MERGE
+        value:
+          typed_config:
+            "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
+            access_log:
+              - name: envoy.access_loggers.file
+                typed_config:
+                  "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog"
+                  path: /dev/stdout
+                  log_format:
+                    json_format:
+                      start_time: "%START_TIME%"
+                      route_name: "%ROUTE_NAME%"
+                      method: "%REQ(:METHOD)%"
+                      path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
+                      protocol: "%PROTOCOL%"
+                      response_code: "%RESPONSE_CODE%"
+                      response_flags: "%RESPONSE_FLAGS%"
+                      response_code_details: "%RESPONSE_CODE_DETAILS%"
+                      connection_termination_details: "%CONNECTION_TERMINATION_DETAILS%"
+                      bytes_received: "%BYTES_RECEIVED%"
+                      bytes_sent: "%BYTES_SENT%"
+                      duration: "%DURATION%"
+                      upstream_service_time: "%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%"
+                      x_forwarded_for: "%REQ(X-FORWARDED-FOR)%"
+                      user_agent: "%REQ(USER-AGENT)%"
+                      request_id: "%REQ(X-REQUEST-ID)%"
+                      authority: "%REQ(:AUTHORITY)%"
+                      upstream_host: "%UPSTREAM_HOST%"
+                      upstream_cluster: "%UPSTREAM_CLUSTER%"
+                      upstream_local_address: "%UPSTREAM_LOCAL_ADDRESS%"
+                      downstream_local_address: "%DOWNSTREAM_LOCAL_ADDRESS%"
+                      downstream_remote_address: "%DOWNSTREAM_REMOTE_ADDRESS%"
+                      requested_server_name: "%REQUESTED_SERVER_NAME%"
+                      upstream_transport_failure_reason: "%UPSTREAM_TRANSPORT_FAILURE_REASON%"
+                      # highlight-start
+                      request_headers: "%DYNAMIC_METADATA(envoy.lua:request_headers)%"
+                      request_body: "%DYNAMIC_METADATA(envoy.lua:request_body)%"
+                      response_headers: "%DYNAMIC_METADATA(envoy.lua:response_headers)%"
+                      response_body: "%DYNAMIC_METADATA(envoy.lua:response_body)%"
+                      # highlight-end
+    - applyTo: HTTP_FILTER
+      match:
+        context: ANY
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.filters.network.http_connection_manager"
+              subFilter:
+                name: "envoy.filters.http.router"
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.lua
+          typed_config:
+            "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
+            # highlight-start
+            inlineCode: |
+              function envoy_on_request(request_handle)
+                local headers = request_handle:headers()
+                local headers_map = {}
+                for key, value in pairs(headers) do
+                  headers_map[key] = value
+                end
+                request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "request_headers", headers_map)
+                local request_body_buffer = request_handle:body()
+                if(request_body_buffer == nil)
+                then
+                  request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "request_body", "-")
+                else
+                  local request_body_data = request_body_buffer:getBytes(0, request_body_buffer:length())
+                  request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "request_body", request_body_data)
+                end
+              end
+              function envoy_on_response(response_handle)
+                local headers = response_handle:headers()
+                local headers_map = {}
+                for key, value in pairs(headers) do
+                  headers_map[key] = value
+                end
+                response_handle:streamInfo():dynamicMetadata():set("envoy.lua","response_headers", headers_map)
+                local response_body_buffer = response_handle:body()
+                if(response_body_buffer == nil)
+                then
+                  response_handle:streamInfo():dynamicMetadata():set("envoy.lua", "response_body", "-")
+                else
+                  local response_body_data = response_body_buffer:getBytes(0, response_body_buffer:length())
+                  response_handle:streamInfo():dynamicMetadata():set("envoy.lua", "response_body", response_body_data)
+                end
+              end
+            # highlight-end
+```
+</TabItem>
+
+<TabItem value="all-header-body-print" label="打印效果">
+
+```json showLineNumbers
+{
+  "authority": "nginx.test.svc.cluster.local",
+  "response_code": 404,
+  "method": "GET",
+  "upstream_service_time": "1",
+  "user_agent": "curl/7.85.0",
+  "bytes_received": 0,
+  "start_time": "2023-10-08T06:19:16.705Z",
+  "downstream_local_address": "172.16.244.170:80",
+  "route_name": "default",
+  "duration": 1,
+  "response_code_details": "via_upstream",
+  "upstream_host": "172.16.0.236:80",
+  "upstream_cluster": "outbound|80||nignx.test.svc.cluster.local",
+  "upstream_transport_failure_reason": null,
+  "x_forwarded_for": null,
+  "request_id": "19c42034-0f03-4195-ab33-d4a558ca1de4",
+  // highlight-start
+  "response_headers": {
+    "date": "Sun, 08 Oct 2023 06:19:16 GMT",
+    "server": "nginx/1.23.4",
+    "content-length": "10480",
+    "x-envoy-upstream-service-time": "1",
+    ":status": "404",
+    "content-type": "text/html",
+    "etag": "\"65224347-28f0\"",
+    "connection": "keep-alive"
+  },
+  // highlight-end
+  "upstream_local_address": "172.16.0.237:35624",
+  "requested_server_name": null,
+  // highlight-next-line
+  "request_body": "hello",
+  "protocol": "HTTP/1.1",
+  // highlight-next-line
+  "response_body": "world",
+  "connection_termination_details": null,
+  "bytes_sent": 10480,
+  "path": "/test",
+  "downstream_remote_address": "172.16.0.237:44838",
+  // highlight-start
+  "request_headers": {
+    "x-envoy-peer-metadata": "ChsKDkFQUF9DT05UQUlORVJTEgkaB3Rvb2xib3gKGgoKQ0xVU1RFUl9JRBIMGgpLdWJlcm5ldGVzCh4KDElOU1RBTkNFX0lQUxIOGgwxNzIuMTYuMC4yMzcKGQoNSVNUSU9fVkVSU0lPThIIGgYxLjE4LjMKywEKBkxBQkVMUxLAASq9AQoQCgNhcHASCRoHdG9vbGJveAokChpuZXR3b3JraW5nLmlzdGlvLmlvL3R1bm5lbBIGGgRodHRwCiQKGXNlY3VyaXR5LmlzdGlvLmlvL3Rsc01vZGUSBxoFaXN0aW8KLAofc2VydmljZS5pc3Rpby5pby9jYW5vbmljYWwtbmFtZRIJGgd0b29sYm94Ci8KI3NlcnZpY2UuaXN0aW8uaW8vY2Fub25pY2FsLXJldmlzaW9uEggaBmxhdGVzdAoaCgdNRVNIX0lEEg8aDWNsdXN0ZXIubG9jYWwKIgoETkFNRRIaGhh0b29sYm94LTY5ODk1OWY1YzctdGJoZmcKGAoJTkFNRVNQQUNFEgsaCW1lc2gtdGVzdApNCgVPV05FUhJEGkJrdWJlcm5ldGVzOi8vYXBpcy9hcHBzL3YxL25hbWVzcGFjZXMvbWVzaC10ZXN0L2RlcGxveW1lbnRzL3Rvb2xib3gKFwoRUExBVEZPUk1fTUVUQURBVEESAioAChoKDVdPUktMT0FEX05BTUUSCRoHdG9vbGJveA==",
+    "x-envoy-decorator-operation": "nginx.test.svc.cluster.local:80/*",
+    ":scheme": "http",
+    "user-agent": "curl/7.85.0",
+    "x-request-id": "19c42034-0f03-4195-ab33-d4a558ca1de4",
+    ":method": "GET",
+    "x-envoy-peer-metadata-id": "sidecar~172.16.0.237~toolbox-698959f5c7-tbhfg.test~test.svc.cluster.local",
+    "accept": "*/*",
+    ":authority": "nginx.test.svc.cluster.local",
+    "x-forwarded-proto": "http",
+    ":path": "/test"
+  },
+  // highlight-end
+  "response_flags": "-"
+}
+```
+</TabItem>
+
+</Tabs>
+
+</TabItem>
+
+<TabItem value="only-header" label="只打印 header">
+<Tabs>
+<TabItem value="only-header-yaml" label="EnvoyFilter">
+
+```yaml showLineNumbers title="accesslog-print-header.yaml"
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: accesslog-print-header
+  # highlight-next-line
+  namespace: test # 只为 test 命名空间开启 accesslog，若改为 istio-system 表示作用于所有命名空间
+spec:
+  # highlight-start
+  workloadSelector: # 通常打印 header 用于调试，可指定改配置只作用于指定 workload，避免影响其它不需要调试的 workload 的性能
+    labels:
+      app: nginx
+  # highlight-end
+  configPatches:
+    - applyTo: NETWORK_FILTER
+      match:
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.filters.network.http_connection_manager"
+      patch:
+        operation: MERGE
+        value:
+          typed_config:
+            "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
+            access_log:
+              - name: envoy.access_loggers.file
+                typed_config:
+                  "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog"
+                  path: /dev/stdout
+                  log_format:
+                    json_format:
+                      start_time: "%START_TIME%"
+                      route_name: "%ROUTE_NAME%"
+                      method: "%REQ(:METHOD)%"
+                      path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
+                      protocol: "%PROTOCOL%"
+                      response_code: "%RESPONSE_CODE%"
+                      response_flags: "%RESPONSE_FLAGS%"
+                      response_code_details: "%RESPONSE_CODE_DETAILS%"
+                      connection_termination_details: "%CONNECTION_TERMINATION_DETAILS%"
+                      bytes_received: "%BYTES_RECEIVED%"
+                      bytes_sent: "%BYTES_SENT%"
+                      duration: "%DURATION%"
+                      upstream_service_time: "%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%"
+                      x_forwarded_for: "%REQ(X-FORWARDED-FOR)%"
+                      user_agent: "%REQ(USER-AGENT)%"
+                      request_id: "%REQ(X-REQUEST-ID)%"
+                      authority: "%REQ(:AUTHORITY)%"
+                      upstream_host: "%UPSTREAM_HOST%"
+                      upstream_cluster: "%UPSTREAM_CLUSTER%"
+                      upstream_local_address: "%UPSTREAM_LOCAL_ADDRESS%"
+                      downstream_local_address: "%DOWNSTREAM_LOCAL_ADDRESS%"
+                      downstream_remote_address: "%DOWNSTREAM_REMOTE_ADDRESS%"
+                      requested_server_name: "%REQUESTED_SERVER_NAME%"
+                      upstream_transport_failure_reason: "%UPSTREAM_TRANSPORT_FAILURE_REASON%"
+                      # highlight-start
+                      request_headers: "%DYNAMIC_METADATA(envoy.lua:request_headers)%"
+                      response_headers: "%DYNAMIC_METADATA(envoy.lua:response_headers)%"
+                      # highlight-end
+    - applyTo: HTTP_FILTER
+      match:
+        context: ANY
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.filters.network.http_connection_manager"
+              subFilter:
+                name: "envoy.filters.http.router"
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.lua
+          typed_config:
+            "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
+            # highlight-start
+            inlineCode: |
+              function envoy_on_request(request_handle)
+                local headers = request_handle:headers()
+                local headers_map = {}
+                for key, value in pairs(headers) do
+                  headers_map[key] = value
+                end
+                request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "request_headers", headers_map)
+              end
+              function envoy_on_response(response_handle)
+                local headers = response_handle:headers()
+                local headers_map = {}
+                for key, value in pairs(headers) do
+                  headers_map[key] = value
+                end
+                response_handle:streamInfo():dynamicMetadata():set("envoy.lua","response_headers", headers_map)
+              end
+            # highlight-end
+```
+</TabItem>
+
+<TabItem value="only-header-print" label="打印效果">
+
+```json showLineNumbers
+{
+  "authority": "nginx.test.svc.cluster.local",
+  "response_code": 404,
+  "method": "GET",
+  "upstream_service_time": "1",
+  "user_agent": "curl/7.85.0",
+  "bytes_received": 0,
+  "start_time": "2023-10-08T06:19:16.705Z",
+  "downstream_local_address": "172.16.244.170:80",
+  "route_name": "default",
+  "duration": 1,
+  "response_code_details": "via_upstream",
+  "upstream_host": "172.16.0.236:80",
+  "upstream_cluster": "outbound|80||nignx.test.svc.cluster.local",
+  "upstream_transport_failure_reason": null,
+  "x_forwarded_for": null,
+  "request_id": "19c42034-0f03-4195-ab33-d4a558ca1de4",
+  // highlight-start
+  "response_headers": {
+    "date": "Sun, 08 Oct 2023 06:19:16 GMT",
+    "server": "nginx/1.23.4",
+    "content-length": "10480",
+    "x-envoy-upstream-service-time": "1",
+    ":status": "404",
+    "content-type": "text/html",
+    "etag": "\"65224347-28f0\"",
+    "connection": "keep-alive"
+  },
+  // highlight-end
+  "upstream_local_address": "172.16.0.237:35624",
+  "requested_server_name": null,
+  "protocol": "HTTP/1.1",
+  "connection_termination_details": null,
+  "bytes_sent": 10480,
+  "path": "/test",
+  "downstream_remote_address": "172.16.0.237:44838",
+  // highlight-start
+  "request_headers": {
+    "x-envoy-peer-metadata": "ChsKDkFQUF9DT05UQUlORVJTEgkaB3Rvb2xib3gKGgoKQ0xVU1RFUl9JRBIMGgpLdWJlcm5ldGVzCh4KDElOU1RBTkNFX0lQUxIOGgwxNzIuMTYuMC4yMzcKGQoNSVNUSU9fVkVSU0lPThIIGgYxLjE4LjMKywEKBkxBQkVMUxLAASq9AQoQCgNhcHASCRoHdG9vbGJveAokChpuZXR3b3JraW5nLmlzdGlvLmlvL3R1bm5lbBIGGgRodHRwCiQKGXNlY3VyaXR5LmlzdGlvLmlvL3Rsc01vZGUSBxoFaXN0aW8KLAofc2VydmljZS5pc3Rpby5pby9jYW5vbmljYWwtbmFtZRIJGgd0b29sYm94Ci8KI3NlcnZpY2UuaXN0aW8uaW8vY2Fub25pY2FsLXJldmlzaW9uEggaBmxhdGVzdAoaCgdNRVNIX0lEEg8aDWNsdXN0ZXIubG9jYWwKIgoETkFNRRIaGhh0b29sYm94LTY5ODk1OWY1YzctdGJoZmcKGAoJTkFNRVNQQUNFEgsaCW1lc2gtdGVzdApNCgVPV05FUhJEGkJrdWJlcm5ldGVzOi8vYXBpcy9hcHBzL3YxL25hbWVzcGFjZXMvbWVzaC10ZXN0L2RlcGxveW1lbnRzL3Rvb2xib3gKFwoRUExBVEZPUk1fTUVUQURBVEESAioAChoKDVdPUktMT0FEX05BTUUSCRoHdG9vbGJveA==",
+    "x-envoy-decorator-operation": "nginx.test.svc.cluster.local:80/*",
+    ":scheme": "http",
+    "user-agent": "curl/7.85.0",
+    "x-request-id": "19c42034-0f03-4195-ab33-d4a558ca1de4",
+    ":method": "GET",
+    "x-envoy-peer-metadata-id": "sidecar~172.16.0.237~toolbox-698959f5c7-tbhfg.test~test.svc.cluster.local",
+    "accept": "*/*",
+    ":authority": "nginx.test.svc.cluster.local",
+    "x-forwarded-proto": "http",
+    ":path": "/test"
+  },
+  // highlight-end
+  "response_flags": "-"
+}
+```
+</TabItem>
+
+</Tabs>
+</TabItem>
+
+<TabItem value="only-body" label="只打印 body">
+
+<Tabs>
+<TabItem value="only-body-yaml" label="EnvoyFilter">
+
+```yaml showLineNumbers title="accesslog-print-body.yaml"
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: accesslog-print-body
+  # highlight-next-line
+  namespace: test # 只为 test 命名空间开启 accesslog，若改为 istio-system 表示作用于所有命名空间
+spec:
+  # highlight-start
+  workloadSelector: # 通常打印 body 用于调试，可指定改配置只作用于指定 workload，避免影响其它不需要调试的 workload 的性能
+    labels:
+      app: nginx
+  # highlight-end
+  configPatches:
+    - applyTo: NETWORK_FILTER
+      match:
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.filters.network.http_connection_manager"
+      patch:
+        operation: MERGE
+        value:
+          typed_config:
+            "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
+            access_log:
+              - name: envoy.access_loggers.file
+                typed_config:
+                  "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog"
+                  path: /dev/stdout
+                  log_format:
+                    json_format:
+                      start_time: "%START_TIME%"
+                      route_name: "%ROUTE_NAME%"
+                      method: "%REQ(:METHOD)%"
+                      path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
+                      protocol: "%PROTOCOL%"
+                      response_code: "%RESPONSE_CODE%"
+                      response_flags: "%RESPONSE_FLAGS%"
+                      response_code_details: "%RESPONSE_CODE_DETAILS%"
+                      connection_termination_details: "%CONNECTION_TERMINATION_DETAILS%"
+                      bytes_received: "%BYTES_RECEIVED%"
+                      bytes_sent: "%BYTES_SENT%"
+                      duration: "%DURATION%"
+                      upstream_service_time: "%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%"
+                      x_forwarded_for: "%REQ(X-FORWARDED-FOR)%"
+                      user_agent: "%REQ(USER-AGENT)%"
+                      request_id: "%REQ(X-REQUEST-ID)%"
+                      authority: "%REQ(:AUTHORITY)%"
+                      upstream_host: "%UPSTREAM_HOST%"
+                      upstream_cluster: "%UPSTREAM_CLUSTER%"
+                      upstream_local_address: "%UPSTREAM_LOCAL_ADDRESS%"
+                      downstream_local_address: "%DOWNSTREAM_LOCAL_ADDRESS%"
+                      downstream_remote_address: "%DOWNSTREAM_REMOTE_ADDRESS%"
+                      requested_server_name: "%REQUESTED_SERVER_NAME%"
+                      upstream_transport_failure_reason: "%UPSTREAM_TRANSPORT_FAILURE_REASON%"
+                      # highlight-start
+                      request_body: "%DYNAMIC_METADATA(envoy.lua:request_body)%"
+                      response_body: "%DYNAMIC_METADATA(envoy.lua:response_body)%"
+                      # highlight-end
+    - applyTo: HTTP_FILTER
+      match:
+        context: ANY
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.filters.network.http_connection_manager"
+              subFilter:
+                name: "envoy.filters.http.router"
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.lua
+          typed_config:
+            "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
+            # highlight-start
+            inlineCode: |
+              function envoy_on_request(request_handle)
+                local request_body_buffer = request_handle:body()
+                if(request_body_buffer == nil)
+                then
+                  request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "request_body", "-")
+                else
+                  local request_body_data = request_body_buffer:getBytes(0, request_body_buffer:length())
+                  request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "request_body", request_body_data)
+                end
+              end
+              function envoy_on_response(response_handle)
+                local response_body_buffer = response_handle:body()
+                if(response_body_buffer == nil)
+                then
+                  response_handle:streamInfo():dynamicMetadata():set("envoy.lua", "response_body", "-")
+                else
+                  local response_body_data = response_body_buffer:getBytes(0, response_body_buffer:length())
+                  response_handle:streamInfo():dynamicMetadata():set("envoy.lua", "response_body", response_body_data)
+                end
+              end
+            # highlight-end
+```
+</TabItem>
+
+<TabItem value="only-body-print" label="打印效果">
+
+```json showLineNumbers
+{
+  "authority": "nginx.test.svc.cluster.local",
+  "response_code": 404,
+  "method": "GET",
+  "upstream_service_time": "1",
+  "user_agent": "curl/7.85.0",
+  "bytes_received": 0,
+  "start_time": "2023-10-08T06:19:16.705Z",
+  "downstream_local_address": "172.16.244.170:80",
+  "route_name": "default",
+  "duration": 1,
+  "response_code_details": "via_upstream",
+  "upstream_host": "172.16.0.236:80",
+  "upstream_cluster": "outbound|80||nignx.test.svc.cluster.local",
+  "upstream_transport_failure_reason": null,
+  "x_forwarded_for": null,
+  "request_id": "19c42034-0f03-4195-ab33-d4a558ca1de4",
+  "upstream_local_address": "172.16.0.237:35624",
+  "requested_server_name": null,
+  // highlight-next-line
+  "request_body": "hello",
+  "protocol": "HTTP/1.1",
+  // highlight-next-line
+  "response_body": "world",
+  "connection_termination_details": null,
+  "bytes_sent": 10480,
+  "path": "/test",
+  "downstream_remote_address": "172.16.0.237:44838",
+  "response_flags": "-"
+}
+```
+</TabItem>
+
+</Tabs>
+
+</TabItem>
+
+
+</Tabs>
 
 ## 参考资料
 
