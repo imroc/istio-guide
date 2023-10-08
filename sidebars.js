@@ -84,6 +84,18 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: '实用 EnvoyFilter',
+      collapsed: true,
+      link: {
+        type: 'generated-index',
+        slug: '/envoyfilter'
+      },
+      items: [
+        'envoyfilter/accesslog'
+      ],
+    },
+    {
+      type: 'category',
       label: '常见问题',
       collapsed: true,
       link: {
