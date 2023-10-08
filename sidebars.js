@@ -79,7 +79,6 @@ const sidebars = {
         'trick/hide-server-header',
         'trick/debug',
         'trick/customize-proxy-loglevel',
-        'trick/partially-enable-accesslog',
       ],
     },
     {
