@@ -91,141 +91,22 @@ import OnlyHeaderPrintSrouce from '!!raw-loader!./only-header-print.json';
 <Tabs>
 <TabItem value="only-body-yaml" label="EnvoyFilter">
 
-```yaml showLineNumbers title="accesslog-print-body.yaml"
-apiVersion: networking.istio.io/v1alpha3
-kind: EnvoyFilter
-metadata:
-  name: accesslog-print-body
-  # highlight-next-line
-  namespace: test # 只为 test 命名空间开启 accesslog，若改为 istio-system 表示作用于所有命名空间
-spec:
-  # highlight-start
-  workloadSelector: # 通常打印 body 用于调试，可指定改配置只作用于指定 workload，避免影响其它不需要调试的 workload 的性能
-    labels:
-      app: nginx
-  # highlight-end
-  configPatches:
-    - applyTo: NETWORK_FILTER
-      match:
-        listener:
-          filterChain:
-            filter:
-              name: "envoy.filters.network.http_connection_manager"
-      patch:
-        operation: MERGE
-        value:
-          typed_config:
-            "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
-            access_log:
-              - name: envoy.access_loggers.file
-                typed_config:
-                  "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog"
-                  path: /dev/stdout
-                  log_format:
-                    json_format:
-                      start_time: "%START_TIME%"
-                      route_name: "%ROUTE_NAME%"
-                      method: "%REQ(:METHOD)%"
-                      path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
-                      protocol: "%PROTOCOL%"
-                      response_code: "%RESPONSE_CODE%"
-                      response_flags: "%RESPONSE_FLAGS%"
-                      response_code_details: "%RESPONSE_CODE_DETAILS%"
-                      connection_termination_details: "%CONNECTION_TERMINATION_DETAILS%"
-                      bytes_received: "%BYTES_RECEIVED%"
-                      bytes_sent: "%BYTES_SENT%"
-                      duration: "%DURATION%"
-                      upstream_service_time: "%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%"
-                      x_forwarded_for: "%REQ(X-FORWARDED-FOR)%"
-                      user_agent: "%REQ(USER-AGENT)%"
-                      request_id: "%REQ(X-REQUEST-ID)%"
-                      authority: "%REQ(:AUTHORITY)%"
-                      upstream_host: "%UPSTREAM_HOST%"
-                      upstream_cluster: "%UPSTREAM_CLUSTER%"
-                      upstream_local_address: "%UPSTREAM_LOCAL_ADDRESS%"
-                      downstream_local_address: "%DOWNSTREAM_LOCAL_ADDRESS%"
-                      downstream_remote_address: "%DOWNSTREAM_REMOTE_ADDRESS%"
-                      requested_server_name: "%REQUESTED_SERVER_NAME%"
-                      upstream_transport_failure_reason: "%UPSTREAM_TRANSPORT_FAILURE_REASON%"
-                      # highlight-start
-                      request_body: "%DYNAMIC_METADATA(envoy.lua:request_body)%"
-                      response_body: "%DYNAMIC_METADATA(envoy.lua:response_body)%"
-                      # highlight-end
-    - applyTo: HTTP_FILTER
-      match:
-        context: ANY
-        listener:
-          filterChain:
-            filter:
-              name: "envoy.filters.network.http_connection_manager"
-              subFilter:
-                name: "envoy.filters.http.router"
-      patch:
-        operation: INSERT_BEFORE
-        value:
-          name: envoy.lua
-          typed_config:
-            "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
-            # highlight-start
-            inlineCode: |
-              function envoy_on_request(request_handle)
-                local request_body_buffer = request_handle:body()
-                if(request_body_buffer == nil)
-                then
-                  request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "request_body", "-")
-                else
-                  local request_body_data = request_body_buffer:getBytes(0, request_body_buffer:length())
-                  request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "request_body", request_body_data)
-                end
-              end
-              function envoy_on_response(response_handle)
-                local response_body_buffer = response_handle:body()
-                if(response_body_buffer == nil)
-                then
-                  response_handle:streamInfo():dynamicMetadata():set("envoy.lua", "response_body", "-")
-                else
-                  local response_body_data = response_body_buffer:getBytes(0, response_body_buffer:length())
-                  response_handle:streamInfo():dynamicMetadata():set("envoy.lua", "response_body", response_body_data)
-                end
-              end
-            # highlight-end
-```
+import AccessLogPrintBodySource from '!!raw-loader!./accesslog-print-body.yaml';
+
+<CodeBlock language="yaml" showLineNumbers title="accesslog-print-body.yaml">
+{AccessLogPrintBodySource}
+</CodeBlock>
+
 </TabItem>
 
 <TabItem value="only-body-print" label="打印效果">
 
-```json showLineNumbers
-{
-  "authority": "nginx.test.svc.cluster.local",
-  "response_code": 404,
-  "method": "GET",
-  "upstream_service_time": "1",
-  "user_agent": "curl/7.85.0",
-  "bytes_received": 0,
-  "start_time": "2023-10-08T06:19:16.705Z",
-  "downstream_local_address": "172.16.244.170:80",
-  "route_name": "default",
-  "duration": 1,
-  "response_code_details": "via_upstream",
-  "upstream_host": "172.16.0.236:80",
-  "upstream_cluster": "outbound|80||nignx.test.svc.cluster.local",
-  "upstream_transport_failure_reason": null,
-  "x_forwarded_for": null,
-  "request_id": "19c42034-0f03-4195-ab33-d4a558ca1de4",
-  "upstream_local_address": "172.16.0.237:35624",
-  "requested_server_name": null,
-  // highlight-next-line
-  "request_body": "hello",
-  "protocol": "HTTP/1.1",
-  // highlight-next-line
-  "response_body": "world",
-  "connection_termination_details": null,
-  "bytes_sent": 10480,
-  "path": "/test",
-  "downstream_remote_address": "172.16.0.237:44838",
-  "response_flags": "-"
-}
-```
+import OnlyBodyPrintSrouce from '!!raw-loader!./only-body-print.json';
+
+<CodeBlock language="json" showLineNumbers>
+{OnlyBodyPrintSrouce}
+</CodeBlock>
+
 </TabItem>
 
 </Tabs>
