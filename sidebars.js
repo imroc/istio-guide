@@ -92,6 +92,8 @@ const sidebars = {
       items: [
         'envoyfilter/accesslog',
         'envoyfilter/preserve-case',
+        'envoyfilter/enable-gzip',
+        'envoyfilter/limit-request-size',
       ],
     },
     {
