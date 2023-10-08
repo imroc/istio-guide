@@ -169,7 +169,6 @@ const sidebars = {
         'appendix/link',
         'appendix/shell',
         'appendix/yaml',
-        'appendix/envoyfilter',
       ],
     },
   ],
