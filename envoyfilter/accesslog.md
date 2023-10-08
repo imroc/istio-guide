@@ -5,6 +5,8 @@ import TabItem from '@theme/TabItem';
 
 ## 局部启用 accesslog
 
+给部分需要的 workload 动态启用 accesslog，也可自定义格式来调试：
+
 <Tabs>
 <TabItem value="json" label="json 格式">
 
@@ -112,3 +114,9 @@ spec:
 </TabItem>
 
 </Tabs>
+
+
+## 参考资料
+
+* [Envoy Access Log 变量参考](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log/usage#command-operators)
+* [Istio Default Access Log Format](https://istio.io/latest/docs/tasks/observability/logs/access-log/#default-access-log-format)
