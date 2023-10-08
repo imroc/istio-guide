@@ -130,7 +130,7 @@ import AccessLogPrintRequestHeaderBodySource from '!!raw-loader!./accesslog-prin
 
 import AccessLogPrintRequestHeaderBodyJsonSource from '!!raw-loader!./accesslog-print-request-header-body.json';
 
-<CodeBlock language="yaml" showLineNumbers>
+<CodeBlock language="json" showLineNumbers>
 {AccessLogPrintRequestHeaderBodyJsonSource}
 </CodeBlock>
 
