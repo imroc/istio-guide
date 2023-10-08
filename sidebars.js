@@ -90,7 +90,8 @@ const sidebars = {
         slug: '/envoyfilter'
       },
       items: [
-        'envoyfilter/accesslog'
+        'envoyfilter/accesslog',
+        'envoyfilter/preserve-case',
       ],
     },
     {
