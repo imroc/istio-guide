@@ -3,9 +3,9 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-## 局部启用 accesslog
+## 部分 workload 启用 accesslog
 
-给部分需要的 workload 动态启用 accesslog，也可自定义格式来调试：
+可以用 EnvoyFilter 给部分需要的 workload 动态启用 accesslog (还可自定义日志格式)：
 
 <Tabs>
 <TabItem value="json" label="json 格式">
