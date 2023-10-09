@@ -1,0 +1,30 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: preserve-case-response
+  # highlight-next-line
+  namespace: test # 限制命名空间，若改为 istio-system 表示作用于所有命名空间
+spec:
+  # highlight-start
+  workloadSelector: # 精确到指定的 workload，若不需要可去掉
+    labels:
+      app: istio-ingressgateway
+  # highlight-end
+  priority: 0
+  configPatches:
+    - applyTo: CLUSTER
+      match:
+        context: ANY
+      patch:
+        operation: MERGE
+        value:
+          typed_extension_protocol_options:
+            envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+              "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+              use_downstream_protocol_config:
+                http_protocol_options:
+                  header_key_format:
+                    stateful_formatter:
+                      name: preserve_case
+                      typed_config:
+                        "@type": type.googleapis.com/envoy.extensions.http.header_formatters.preserve_case.v3.PreserveCaseFormatterConfig

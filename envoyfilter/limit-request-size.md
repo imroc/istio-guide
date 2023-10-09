@@ -29,247 +29,41 @@ import TabItem from '@theme/TabItem';
 ## 限制请求头大小
 
 <Tabs>
+  <TabItem value="limit-header-size-all-gw" label="对所有 ingressgateway 生效">
+    <FileBlock showLineNumbers showFileName file="envoyfilter/limit-request/limit-header-size.yaml">
+    </FileBlock>
+  </TabItem>
 
-<TabItem value="limit-header-size-all-gw" label="对所有 ingressgateway 生效">
-
-```yaml showLineNumbers title="limit-header-size.yaml"
-apiVersion: networking.istio.io/v1alpha3
-kind: EnvoyFilter
-metadata:
-  name: limit-header-size
-  # highlight-next-line
-  namespace: istio-system # istio-system 表示针对所有命名空间生效
-spec:
-  # highlight-start
-  workloadSelector: # 选中所有 ingressgateway
-    labels:
-      istio: ingressgateway # 所有 ingressgateway 都带此 label
-  # highlight-end
-  configPatches:
-  - applyTo: NETWORK_FILTER
-    match:
-      context: ANY
-      listener:
-        filterChain:
-          filter:
-            name: "envoy.http_connection_manager"
-    patch:
-      operation: MERGE
-      value:
-        typed_config:
-          "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
-          # highlight-next-line
-          max_request_headers_kb: 96 # 96KB, 请求 header 最大限制
-```
-</TabItem>
-
-<TabItem value="limit-header-size-one-gw" label="对指定 ingressgateway 生效">
-
-```yaml showLineNumbers title="limit-header-size.yaml"
-apiVersion: networking.istio.io/v1alpha3
-kind: EnvoyFilter
-metadata:
-  name: limit-header-size
-  # highlight-next-line
-  namespace: prod # 选择指定 ingressgateway 所在的命名空间
-spec:
-  # highlight-start
-  workloadSelector: # 选中指定 ingressgateway
-    labels:
-      app: istio-ingressgateway-public # 替换指定 ingressgateway 的 label
-  # highlight-end
-  configPatches:
-  - applyTo: NETWORK_FILTER
-    match:
-      context: ANY
-      listener:
-        filterChain:
-          filter:
-            name: "envoy.http_connection_manager"
-    patch:
-      operation: MERGE
-      value:
-        typed_config:
-          "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
-          # highlight-next-line
-          max_request_headers_kb: 96 # 96KB, 请求 header 最大限制
-```
-</TabItem>
-
+  <TabItem value="limit-header-size-one-gw" label="对指定 ingressgateway 生效">
+    <FileBlock showLineNumbers showFileName file="envoyfilter/limit-request/limit-header-size-for-public.yaml">
+    </FileBlock>
+  </TabItem>
 </Tabs>
 
 ## 限制请求整体大小
 
 <Tabs>
+  <TabItem value="limit-request-size-all-gw" label="对所有 ingressgateway 生效">
+    <FileBlock showLineNumbers showFileName file="envoyfilter/limit-request/limit-request-size.yaml">
+    </FileBlock>
+  </TabItem>
 
-<TabItem value="limit-request-size-all-gw" label="对所有 ingressgateway 生效">
-
-```yaml showLineNumbers title="limit-request-size.yaml"
-apiVersion: networking.istio.io/v1alpha3
-kind: EnvoyFilter
-metadata:
-  name: limit-request-size
-  # highlight-next-line
-  namespace: istio-system # istio-system 表示针对所有命名空间生效
-spec:
-  # highlight-start
-  workloadSelector: # 选中所有 ingressgateway
-    labels:
-      istio: ingressgateway # 所有 ingressgateway 都带此 label
-  # highlight-end
-  configPatches:
-  - applyTo: HTTP_FILTER
-    match:
-      context: GATEWAY
-      listener:
-        filterChain:
-          filter:
-            name: "envoy.http_connection_manager"
-    patch:
-      operation: INSERT_BEFORE
-      value:
-        name: "envoy.filters.http.buffer"
-        typed_config:
-          '@type': "type.googleapis.com/envoy.extensions.filters.http.buffer.v3.Buffer"
-          # highlight-next-line
-          max_request_bytes: 1048576  # 1MB, 请求最大限制
-```
-</TabItem>
-
-<TabItem value="limit-request-size-one-gw" label="对指定 ingressgateway 生效">
-
-```yaml showLineNumbers title="limit-request-size.yaml"
-apiVersion: networking.istio.io/v1alpha3
-kind: EnvoyFilter
-metadata:
-  name: limit-request-size
-  # highlight-next-line
-  namespace: prod # 选择指定 ingressgateway 所在的命名空间
-spec:
-  # highlight-start
-  workloadSelector: # 选中指定 ingressgateway
-    labels:
-      app: istio-ingressgateway-public # 替换指定 ingressgateway 的 label
-  # highlight-end
-  configPatches:
-  - applyTo: HTTP_FILTER
-    match:
-      context: GATEWAY
-      listener:
-        filterChain:
-          filter:
-            name: "envoy.http_connection_manager"
-    patch:
-      operation: INSERT_BEFORE
-      value:
-        name: "envoy.filters.http.buffer"
-        typed_config:
-          '@type': "type.googleapis.com/envoy.extensions.filters.http.buffer.v3.Buffer"
-          # highlight-next-line
-          max_request_bytes: 1048576  # 1MB, 请求最大限制
-```
-</TabItem>
-
+  <TabItem value="limit-request-size-one-gw" label="对指定 ingressgateway 生效">
+    <FileBlock showLineNumbers showFileName file="envoyfilter/limit-request/limit-request-size-for-public.yaml">
+    </FileBlock>
+  </TabItem>
 </Tabs>
 
 ## 同时限制请求头和请求整体大小
 
 <Tabs>
+  <TabItem value="limit-size-all-gw" label="对所有 ingressgateway 生效">
+    <FileBlock showLineNumbers showFileName file="envoyfilter/limit-request/limit-header-and-request-size.yaml">
+    </FileBlock>
+  </TabItem>
 
-<TabItem value="limit-size-all-gw" label="对所有 ingressgateway 生效">
-
-```yaml showLineNumbers title="limit-request-size.yaml"
-apiVersion: networking.istio.io/v1alpha3
-kind: EnvoyFilter
-metadata:
-  name: limit-request-size
-  # highlight-next-line
-  namespace: istio-system # istio-system 表示针对所有命名空间生效
-spec:
-  # highlight-start
-  workloadSelector: # 选中所有 ingressgateway
-    labels:
-      istio: ingressgateway # 所有 ingressgateway 都带此 label
-  # highlight-end
-  configPatches:
-  - applyTo: NETWORK_FILTER
-    match:
-      context: ANY
-      listener:
-        filterChain:
-          filter:
-            name: "envoy.http_connection_manager"
-    patch:
-      operation: MERGE
-      value:
-        typed_config:
-          "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
-          # highlight-next-line
-          max_request_headers_kb: 96 # 96KB, 请求 header 最大限制
-  - applyTo: HTTP_FILTER
-    match:
-      context: GATEWAY
-      listener:
-        filterChain:
-          filter:
-            name: "envoy.http_connection_manager"
-    patch:
-      operation: INSERT_BEFORE
-      value:
-        name: "envoy.filters.http.buffer"
-        typed_config:
-          '@type': "type.googleapis.com/envoy.extensions.filters.http.buffer.v3.Buffer"
-          # highlight-next-line
-          max_request_bytes: 1048576  # 1MB, 请求最大限制
-```
-</TabItem>
-
-<TabItem value="limit-size-one-gw" label="对指定 ingressgateway 生效">
-
-```yaml showLineNumbers title="limit-request-size.yaml"
-apiVersion: networking.istio.io/v1alpha3
-kind: EnvoyFilter
-metadata:
-  name: limit-request-size
-  # highlight-next-line
-  namespace: prod # 选择指定 ingressgateway 所在的命名空间
-spec:
-  # highlight-start
-  workloadSelector: # 选中指定 ingressgateway
-    labels:
-      app: istio-ingressgateway-public # 替换指定 ingressgateway 的 label
-  # highlight-end
-  configPatches:
-  - applyTo: NETWORK_FILTER
-    match:
-      context: ANY
-      listener:
-        filterChain:
-          filter:
-            name: "envoy.http_connection_manager"
-    patch:
-      operation: MERGE
-      value:
-        typed_config:
-          "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
-          # highlight-next-line
-          max_request_headers_kb: 96 # 96KB, 请求 header 最大限制
-  - applyTo: HTTP_FILTER
-    match:
-      context: GATEWAY
-      listener:
-        filterChain:
-          filter:
-            name: "envoy.http_connection_manager"
-    patch:
-      operation: INSERT_BEFORE
-      value:
-        name: "envoy.filters.http.buffer"
-        typed_config:
-          '@type': "type.googleapis.com/envoy.extensions.filters.http.buffer.v3.Buffer"
-          # highlight-next-line
-          max_request_bytes: 1048576  # 1MB, 请求最大限制
-```
-</TabItem>
-
+  <TabItem value="limit-size-one-gw" label="对指定 ingressgateway 生效">
+    <FileBlock showLineNumbers showFileName file="envoyfilter/limit-request/limit-header-and-request-size-for-public.yaml">
+    </FileBlock>
+  </TabItem>
 </Tabs>

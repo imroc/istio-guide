@@ -1,0 +1,27 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: limit-header-size
+  # highlight-next-line
+  namespace: istio-system # istio-system 表示针对所有命名空间生效
+spec:
+  # highlight-start
+  workloadSelector: # 选中所有 ingressgateway
+    labels:
+      istio: ingressgateway # 所有 ingressgateway 都带此 label
+  # highlight-end
+  configPatches:
+    - applyTo: NETWORK_FILTER
+      match:
+        context: ANY
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.http_connection_manager"
+      patch:
+        operation: MERGE
+        value:
+          typed_config:
+            "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
+            # highlight-next-line
+            max_request_headers_kb: 96 # 96KB, 请求 header 最大限制

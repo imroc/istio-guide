@@ -35,9 +35,9 @@ data:
 istioctl install --set profile=demo --set meshConfig.accessLogFile="/dev/stdout" --set meshConfig.accessLogEncoding="JSON"
 ```
 
-## 局部启用 accesslog
+## 部分 workload 启用 accesslog
 
-在生产环境中，有时我们不想全局启用 accesslog，我们可以利用 EnvoyFilter 来实现只为部分 namespace 或 workload 启用 accesslog，参考 [实用技巧: 局部启用 accesslog](../trick/partially-enable-accesslog.md)
+在生产环境中，有时我们不想全局启用 accesslog，我们可以利用 EnvoyFilter 来实现只为部分 namespace 或 workload 启用 accesslog，参考 [为部分 workload 启用 accesslog 的 EnvoyFilter](../envoyfilter/accesslog.md#%E9%83%A8%E5%88%86-workload-%E5%90%AF%E7%94%A8-accesslog) 。
 
 ## 日志格式
 
