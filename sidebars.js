@@ -73,7 +73,6 @@ const sidebars = {
         slug: '/trick'
       },
       items: [
-        'trick/set-max-body-size',
         'trick/header-authorization',
         'trick/multi-version-test-service-with-prism',
         'trick/hide-server-header',
