@@ -61,69 +61,11 @@ spec:
   resolution: DNS
 ```
 
-更多协议指定方式请参考: [为服务显式指定协议](https://imroc.cc/istio/best-practice/specify-protocol/)
+更多协议指定方式请参考: [为服务显式指定协议](../best-practices/specify-protocol.md)
 
 ## 最佳实践: 使用 EnvoyFilter 指定 Header 规则为首字母大写
 
-如果希望 Envoy 对某些请求开启 Header 首字母大写的规则，可以用 EnvoyFilter 来指定:
-
-```yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: EnvoyFilter
-metadata:
-  name: http-header-proper-case-words
-  namespace: istio-system
-spec:
-  configPatches:
-  - applyTo: NETWORK_FILTER # http connection manager is a filter in Envoy
-    match:
-      # context omitted so that this applies to both sidecars and gateways
-      listener:
-        name: XXX # 指定 cos使用的listener name，可以从config_dump中查询到
-        filterChain:
-          filter:
-            name: "envoy.http_connection_manager"
-    patch:
-      operation: MERGE
-      value:
-        name: "envoy.http_connection_manager"
-        typed_config:
-          "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager"
-          http_protocol_options:
-            header_key_format:
-              proper_case_words: {}
-```
-
-> 注意替换 listener name
-
-如果希望直接全局开启 Header 首字母大写的规则，可以用这个 EnvoyFileter:
-
-```yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: EnvoyFilter
-metadata:
- name: http-header-proper-case-words
- namespace: istio-system
-spec:
-  configPatches:
-  - applyTo: NETWORK_FILTER
-    match:
-      listener:
-        filterChain:
-          filter:
-            name: "envoy.filters.network.http_connection_manager"
-    patch:
-      operation: MERGE
-      value:
-        typed_config:
-          "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
-          http_protocol_options:
-            header_key_format:
-              stateful_formatter:
-                name: preserve_case
-                typed_config:
-                  "@type": type.googleapis.com/envoy.extensions.http.header_formatters.preserve_case.v3.PreserveCaseFormatterConfig
-```
+参考[实用 EnvoyFilter: 保留 header 大小写](../envoyfilter/preserve-case.md)
 
 ## 建议
 
