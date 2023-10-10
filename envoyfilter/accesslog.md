@@ -1,5 +1,9 @@
 # accesslog 相关
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import FileBlock from '@site/src/components/FileBlock'
+
 ## 部分 workload 启用 accesslog
 
 可以用 EnvoyFilter 给部分需要的 workload 动态启用 accesslog (还可自定义日志格式)：

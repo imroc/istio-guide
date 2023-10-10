@@ -1,5 +1,9 @@
 # 限制请求大小
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import FileBlock from '@site/src/components/FileBlock'
+
 ## 背景
 
 Envoy 默认对请求大小有限制，包括请求头大小限制和整个请求的大小限制，分别由 [max_request_headers_kb](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto#extensions-filters-network-http-connection-manager-v3-httpconnectionmanager) 和 [max_request_bytes](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/buffer/v3/buffer.proto#extensions-filters-http-buffer-v3-buffer) 这两个参数控制，以下是这两个参数的解释：
@@ -22,9 +26,6 @@ max_request_bytes
 2. 一些特殊用途导致请求头比较大，需要上调默认的请求头限制避免响应 431。
 
 一般只需要 ingressgateway 调整这些限制，下面给出针对 ingressgateway 调整限制的 EnvoyFilter。
-
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
 
 ## 限制请求头大小
 
