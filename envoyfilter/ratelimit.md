@@ -30,7 +30,7 @@ import FileBlock from '@site/src/components/FileBlock'
 
 ## 全局限流
 
-全局限流的意思是在全局限制 QPS，既然是全局，那必然有单独的地方存储请求的统计数据，一般使用 redis 来存储，然后限流服务根据 redis 中全局的统计数据判断是否要限流。
+全局限流的意思是在全局限制 QPS，既然是全局，那必然有单独的地方存储请求的统计数据，一般使用自行部署的 redis 来存储，然后限流服务根据 redis 中全局的统计数据判断是否要限流。
 
 这个相对麻烦，可参考 [官方文档](https://istio.io/latest/zh/docs/tasks/policy-enforcement/rate-limit/#global-rate-limit)。
 
