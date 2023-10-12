@@ -2,7 +2,7 @@
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import FileBlock from '@site/src/components/FileBlock'
+import FileBlock from '@site/src/components/FileBlock';
 
 可以用 EnvoyFilter 给部分需要的 workload 动态启用 accesslog (还可自定义日志格式)：
 

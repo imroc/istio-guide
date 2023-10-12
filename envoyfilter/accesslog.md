@@ -2,7 +2,7 @@
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import FileBlock from '@site/src/components/FileBlock'
+import FileBlock from '@site/src/components/FileBlock';
 
 ## 部分 workload 启用 accesslog
 

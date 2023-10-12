@@ -2,7 +2,7 @@
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import FileBlock from '@site/src/components/FileBlock'
+import FileBlock from '@site/src/components/FileBlock';
 
 ## 本地限流
 

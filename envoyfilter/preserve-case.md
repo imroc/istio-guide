@@ -1,6 +1,6 @@
 # 保留 header 大小写
 
-import FileBlock from '@site/src/components/FileBlock'
+import FileBlock from '@site/src/components/FileBlock';
 
 ## 背景
 
