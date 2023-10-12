@@ -94,6 +94,7 @@ const sidebars = {
         'envoyfilter/enable-gzip',
         'envoyfilter/limit-request-size',
         'envoyfilter/label-traffic',
+        'envoyfilter/ratelimit',
       ],
     },
     {

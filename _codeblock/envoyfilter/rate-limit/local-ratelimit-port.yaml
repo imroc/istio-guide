@@ -1,0 +1,72 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: local-ratelimit-port
+  # highlight-next-line
+  namespace: mesh-test # workload 所在 namespace
+spec:
+  # highlight-start
+  # 只限制 productpage 工作负载的 QPS
+  workloadSelector:
+    labels:
+      app: productpage
+  # highlight-end
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        context: SIDECAR_INBOUND
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.filters.network.http_connection_manager"
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.filters.http.local_ratelimit
+          typed_config:
+            "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+            type_url: type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+            value:
+              stat_prefix: http_local_rate_limiter
+    - applyTo: HTTP_ROUTE
+      match:
+        context: SIDECAR_INBOUND
+        # highlight-start
+        # 只限制入向 9080 端口流量的 QPS
+        routeConfiguration:
+          vhost:
+            name: "inbound|http|9080"
+            route:
+              action: ANY
+        # highlight-end
+      patch:
+        operation: MERGE
+        value:
+          typed_per_filter_config:
+            envoy.filters.http.local_ratelimit:
+              "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+              type_url: type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+              value:
+                stat_prefix: http_local_rate_limiter
+                token_bucket:
+                  # highlight-start
+                  # 限制每分钟 10 个请求
+                  max_tokens: 10
+                  tokens_per_fill: 10
+                  fill_interval: 60s
+                  # highlight-end
+                filter_enabled:
+                  runtime_key: local_rate_limit_enabled
+                  default_value:
+                    numerator: 100
+                    denominator: HUNDRED
+                filter_enforced:
+                  runtime_key: local_rate_limit_enforced
+                  default_value:
+                    numerator: 100
+                    denominator: HUNDRED
+                response_headers_to_add:
+                  - append: false
+                    header:
+                      key: x-local-rate-limit
+                      value: "true"
