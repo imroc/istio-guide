@@ -8,9 +8,13 @@ import FileBlock from '@site/src/components/FileBlock'
 
 本地限流的意思是只针对单个代理 (ingressgateway 或 sidecar) 的速率限制，不是全局的，不过一般用本地限流就足够了，能够起到保护后端不过载的作用。
 
+### 加注解
+
 首先在要给 pod 加注解配置让 Envoy 启用 `http_local_rate_limit` 的统计数据 ，示例(注意高亮部分)：
 
 <FileBlock showLineNumbers file="envoyfilter/ratelimit/productpage-enable-http-local-rate-limit-proxy-config.yaml" />
+
+### 创建 EnvoyFilter
 
 然后根据限流需求创建 EnvoyFilter，示例：
 
