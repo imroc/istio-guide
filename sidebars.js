@@ -58,7 +58,20 @@ const sidebars = {
         slug: '/usage'
       },
       items: [
-        'usage/configure-accesslog',
+        {
+          type: 'category',
+          label: '访问日志',
+          collapsed: true,
+          link: {
+            type: 'generated-index',
+            slug: '/usage/accesslog'
+          },
+          items: [
+            'usage/accesslog/accesslog-config',
+            'usage/accesslog/enable-accesslog-for-workload',
+            'usage/accesslog/accesslog-print-header-body',
+          ],
+        },
         'usage/cors',
         'usage/iphash',
         'usage/websocket',
@@ -89,7 +102,6 @@ const sidebars = {
         slug: '/envoyfilter'
       },
       items: [
-        'envoyfilter/accesslog',
         'envoyfilter/preserve-case',
         'envoyfilter/enable-gzip',
         'envoyfilter/limit-request-size',
