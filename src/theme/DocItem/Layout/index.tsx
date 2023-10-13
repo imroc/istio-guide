@@ -14,7 +14,7 @@ import Unlisted from '@theme/Unlisted';
 import type { Props } from '@theme/DocItem/Layout';
 
 import styles from './styles.module.css';
-import Comment from '../../../components/comment';
+import Comment from '../../../components/Comment';
 
 /**
  * Decide if the toc should be rendered, on mobile or desktop viewports
