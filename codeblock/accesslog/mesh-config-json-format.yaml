@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: istio
+  namespace: istio-system
+data:
+  mesh: |
+    # highlight-start
+    accessLogEncoding: JSON
+    accessLogFile: /dev/stdout
+    # highlight-end

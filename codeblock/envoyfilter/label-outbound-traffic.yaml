@@ -1,0 +1,35 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: label-outbound-traffic
+  # highlight-next-line
+  namespace: test # 指定 workload 所在命名空间，改为 istio-system 表示不限制命名空间
+spec:
+  # highlight-start
+  workloadSelector: # 选中指定 workload，去掉表示对所有 workload 生效
+    labels:
+      app: productpage
+  # highlight-end
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        context: SIDECAR_OUTBOUND
+        listener:
+          filterChain:
+            filter:
+              name: envoy.http_connection_manager
+              subFilter:
+                name: envoy.router
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.lua
+          typed_config:
+            "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
+            # 自动加上 key 为 workload 的 header，value 为 workload 的具体名称，key 和 value 均可根据需求自定义
+            # highlight-start
+            inlineCode: |
+              function envoy_on_request(request_handle)
+                request_handle:headers():add("workload", os.getenv("ISTIO_META_WORKLOAD_NAME"))
+              end
+            # highlight-end

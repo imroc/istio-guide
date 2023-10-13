@@ -1,0 +1,93 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: accesslog-print-response-header-body
+  # highlight-next-line
+  namespace: test # 只为 test 命名空间开启 accesslog，若改为 istio-system 表示作用于所有命名空间
+spec:
+  # highlight-start
+  workloadSelector: # 通常打印 header 和 body 用于调试，可指定改配置只作用于指定 workload，避免影响其它不需要调试的 workload 的性能
+    labels:
+      app: nginx
+  # highlight-end
+  configPatches:
+    - applyTo: NETWORK_FILTER
+      match:
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.filters.network.http_connection_manager"
+      patch:
+        operation: MERGE
+        value:
+          typed_config:
+            "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
+            access_log:
+              - name: envoy.access_loggers.file
+                typed_config:
+                  "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog"
+                  path: /dev/stdout
+                  log_format:
+                    json_format:
+                      start_time: "%START_TIME%"
+                      route_name: "%ROUTE_NAME%"
+                      method: "%REQ(:METHOD)%"
+                      path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
+                      protocol: "%PROTOCOL%"
+                      response_code: "%RESPONSE_CODE%"
+                      response_flags: "%RESPONSE_FLAGS%"
+                      response_code_details: "%RESPONSE_CODE_DETAILS%"
+                      connection_termination_details: "%CONNECTION_TERMINATION_DETAILS%"
+                      bytes_received: "%BYTES_RECEIVED%"
+                      bytes_sent: "%BYTES_SENT%"
+                      duration: "%DURATION%"
+                      upstream_service_time: "%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%"
+                      x_forwarded_for: "%REQ(X-FORWARDED-FOR)%"
+                      user_agent: "%REQ(USER-AGENT)%"
+                      request_id: "%REQ(X-REQUEST-ID)%"
+                      authority: "%REQ(:AUTHORITY)%"
+                      upstream_host: "%UPSTREAM_HOST%"
+                      upstream_cluster: "%UPSTREAM_CLUSTER%"
+                      upstream_local_address: "%UPSTREAM_LOCAL_ADDRESS%"
+                      downstream_local_address: "%DOWNSTREAM_LOCAL_ADDRESS%"
+                      downstream_remote_address: "%DOWNSTREAM_REMOTE_ADDRESS%"
+                      requested_server_name: "%REQUESTED_SERVER_NAME%"
+                      upstream_transport_failure_reason: "%UPSTREAM_TRANSPORT_FAILURE_REASON%"
+                      # highlight-start
+                      response_headers: "%DYNAMIC_METADATA(envoy.lua:response_headers)%"
+                      response_body: "%DYNAMIC_METADATA(envoy.lua:response_body)%"
+                      # highlight-end
+    - applyTo: HTTP_FILTER
+      match:
+        context: ANY
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.filters.network.http_connection_manager"
+              subFilter:
+                name: "envoy.filters.http.router"
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.lua
+          typed_config:
+            "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
+            # highlight-start
+            inlineCode: |
+              function envoy_on_response(response_handle)
+                local headers = response_handle:headers()
+                local headers_map = {}
+                for key, value in pairs(headers) do
+                  headers_map[key] = value
+                end
+                response_handle:streamInfo():dynamicMetadata():set("envoy.lua","response_headers", headers_map)
+                local response_body_buffer = response_handle:body()
+                if(response_body_buffer == nil)
+                then
+                  response_handle:streamInfo():dynamicMetadata():set("envoy.lua", "response_body", "-")
+                else
+                  local response_body_data = response_body_buffer:getBytes(0, response_body_buffer:length())
+                  response_handle:streamInfo():dynamicMetadata():set("envoy.lua", "response_body", response_body_data)
+                end
+              end
+            # highlight-end

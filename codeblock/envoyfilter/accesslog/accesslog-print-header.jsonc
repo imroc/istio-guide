@@ -1,0 +1,53 @@
+{
+  "authority": "nginx.test.svc.cluster.local",
+  "response_code": 404,
+  "method": "GET",
+  "upstream_service_time": "1",
+  "user_agent": "curl/7.85.0",
+  "bytes_received": 0,
+  "start_time": "2023-10-08T06:19:16.705Z",
+  "downstream_local_address": "172.16.244.170:80",
+  "route_name": "default",
+  "duration": 1,
+  "response_code_details": "via_upstream",
+  "upstream_host": "172.16.0.236:80",
+  "upstream_cluster": "outbound|80||nignx.test.svc.cluster.local",
+  "upstream_transport_failure_reason": null,
+  "x_forwarded_for": null,
+  "request_id": "19c42034-0f03-4195-ab33-d4a558ca1de4",
+  // highlight-start
+  "response_headers": {
+    "date": "Sun, 08 Oct 2023 06:19:16 GMT",
+    "server": "nginx/1.23.4",
+    "content-length": "10480",
+    "x-envoy-upstream-service-time": "1",
+    ":status": "404",
+    "content-type": "text/html",
+    "etag": "\"65224347-28f0\"",
+    "connection": "keep-alive"
+  },
+  // highlight-end
+  "upstream_local_address": "172.16.0.237:35624",
+  "requested_server_name": null,
+  "protocol": "HTTP/1.1",
+  "connection_termination_details": null,
+  "bytes_sent": 10480,
+  "path": "/test",
+  "downstream_remote_address": "172.16.0.237:44838",
+  // highlight-start
+  "request_headers": {
+    "x-envoy-peer-metadata": "ChsKDkFQUF9DT05UQUlORVJTEgkaB3Rvb2xib3gKGgoKQ0xVU1RFUl9JRBIMGgpLdWJlcm5ldGVzCh4KDElOU1RBTkNFX0lQUxIOGgwxNzIuMTYuMC4yMzcKGQoNSVNUSU9fVkVSU0lPThIIGgYxLjE4LjMKywEKBkxBQkVMUxLAASq9AQoQCgNhcHASCRoHdG9vbGJveAokChpuZXR3b3JraW5nLmlzdGlvLmlvL3R1bm5lbBIGGgRodHRwCiQKGXNlY3VyaXR5LmlzdGlvLmlvL3Rsc01vZGUSBxoFaXN0aW8KLAofc2VydmljZS5pc3Rpby5pby9jYW5vbmljYWwtbmFtZRIJGgd0b29sYm94Ci8KI3NlcnZpY2UuaXN0aW8uaW8vY2Fub25pY2FsLXJldmlzaW9uEggaBmxhdGVzdAoaCgdNRVNIX0lEEg8aDWNsdXN0ZXIubG9jYWwKIgoETkFNRRIaGhh0b29sYm94LTY5ODk1OWY1YzctdGJoZmcKGAoJTkFNRVNQQUNFEgsaCW1lc2gtdGVzdApNCgVPV05FUhJEGkJrdWJlcm5ldGVzOi8vYXBpcy9hcHBzL3YxL25hbWVzcGFjZXMvbWVzaC10ZXN0L2RlcGxveW1lbnRzL3Rvb2xib3gKFwoRUExBVEZPUk1fTUVUQURBVEESAioAChoKDVdPUktMT0FEX05BTUUSCRoHdG9vbGJveA==",
+    "x-envoy-decorator-operation": "nginx.test.svc.cluster.local:80/*",
+    ":scheme": "http",
+    "user-agent": "curl/7.85.0",
+    "x-request-id": "19c42034-0f03-4195-ab33-d4a558ca1de4",
+    ":method": "GET",
+    "x-envoy-peer-metadata-id": "sidecar~172.16.0.237~toolbox-698959f5c7-tbhfg.test~test.svc.cluster.local",
+    "accept": "*/*",
+    ":authority": "nginx.test.svc.cluster.local",
+    "x-forwarded-proto": "http",
+    ":path": "/test"
+  },
+  // highlight-end
+  "response_flags": "-"
+}
