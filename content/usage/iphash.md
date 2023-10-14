@@ -8,19 +8,7 @@
 
 配置 `DestinationRule`，指定 `useSourceIp` 负载均衡策略:
 
-
-```yaml
-apiVersion: networking.istio.io/v1beta1
-kind: DestinationRule
-metadata:
-  name: bookinfo-ratings
-spec:
-  host: ratings.prod.svc.cluster.local
-  trafficPolicy:
-    loadBalancer:
-      consistentHash:
-        useSourceIp: true
-```
+<FileBlock showLineNumbers file="istio/dr-iphash.yaml" />
 
 ## 参考资料
 

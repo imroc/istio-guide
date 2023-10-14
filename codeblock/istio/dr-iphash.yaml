@@ -1,0 +1,12 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: bookinfo-ratings
+spec:
+  host: ratings.prod.svc.cluster.local
+  # highlight-add-start
+  trafficPolicy:
+    loadBalancer:
+      consistentHash:
+        useSourceIp: true
+  # highlight-add-end

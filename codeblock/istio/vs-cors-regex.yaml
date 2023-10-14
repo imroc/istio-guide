@@ -1,0 +1,22 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: nginx
+  namespace: istio-demo
+spec:
+  gateways:
+    - istio-demo/nginx-gw
+  hosts:
+    - "nginx.example.com"
+    - "test.example.com"
+  http:
+    # highlight-add-start
+    - corsPolicy:
+        allowOrigins:
+          - regex: "https?://nginx.example.com|https?://test.example.com"
+      # highlight-add-end
+      route:
+        - destination:
+            host: nginx.istio-demo.svc.cluster.local
+            port:
+              number: 80

@@ -15,11 +15,13 @@ metadata:
   name: nginx
 spec:
   host: nginx
+  # highlight-add-start
   trafficPolicy:
     outlierDetection:
       consecutive5xxErrors: 3
       interval: 30s
       baseEjectionTime: 30s
+  # highlight-add-end
 ```
 
 ## client 没配置 service

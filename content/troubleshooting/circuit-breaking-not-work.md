@@ -11,10 +11,12 @@ metadata:
   name: nginx
 spec:
   host: nginx
+  # highlight-start
   trafficPolicy:
     connectionPool:
       tcp:
         maxConnections: 1
+  # highlight-end
 ```
 
 但测试当并发超过这里定义的最大连接数时，并没有触发熔断，只是 QPS 很低。通常是因为没有配置 `http1MaxPendingRequests`，不配置默认为 `2^32-1`，非常大，表示如果超过最大连接数，请求就先等待(不直接返回503)，当连接数低于最大值时再继续转发。
@@ -32,6 +34,8 @@ spec:
     connectionPool:
       tcp:
         maxConnections: 1
+      # highlight-start
       http:
         http1MaxPendingRequests: 1
+      # highlight-end
 ```

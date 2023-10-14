@@ -6,28 +6,7 @@
 
 Istio 中通过配置 VirtualService 的 corsPolicy 可以实现跨域支持，示例:
 
-```yaml
-apiVersion: networking.istio.io/v1beta1
-kind: VirtualService
-metadata:
-  name: nginx
-  namespace: istio-demo
-spec:
-  gateways:
-  - istio-demo/nginx-gw
-  hosts:
-  - 'nginx.example.com'
-  - 'test.example.com'
-  http:
-  - corsPolicy:
-      allowOrigins:
-      - regex: "https?://nginx.example.com|https?://test.example.com"
-    route:
-    - destination:
-        host: nginx.istio-demo.svc.cluster.local
-        port:
-          number: 80
-```
+<FileBlock file="istio/vs-cors-regex.yaml" />
 
 * 关键配置在于 `allowOrigins`，表示允许带哪些 Origin 地址的请求。
 * 若有多个域名，使用 `regex` 匹配，`|` 符号分隔。
