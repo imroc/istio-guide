@@ -1,9 +1,5 @@
 # 限流
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import FileBlock from '@site/src/components/FileBlock';
-
 ## 本地限流
 
 本地限流的意思是只针对单个代理 (ingressgateway 或 sidecar) 的速率限制，不是全局的，不过一般用本地限流就足够了，能够起到保护后端不过载的作用。

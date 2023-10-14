@@ -1,9 +1,5 @@
 # 限制请求大小
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import FileBlock from '@site/src/components/FileBlock';
-
 ## 背景
 
 Envoy 默认对请求大小有限制，包括请求头大小限制和整个请求的大小限制，分别由 [max_request_headers_kb](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto#extensions-filters-network-http-connection-manager-v3-httpconnectionmanager) 和 [max_request_bytes](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/buffer/v3/buffer.proto#extensions-filters-http-buffer-v3-buffer) 这两个参数控制，以下是这两个参数的解释：

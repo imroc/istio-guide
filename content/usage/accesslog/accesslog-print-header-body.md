@@ -1,9 +1,5 @@
 # accesslog 打印 header 和 body
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import FileBlock from '@site/src/components/FileBlock';
-
 在排障的时候，如果希望将请求头、请求体、响应头或响应体打印出来进行调试，这时候可通过 EnvoyFilter 来针对需要调试的 workload 动态启用(不建议全局启用，会降低性能、增加内存占用)：
 
 <Tabs>

@@ -1,7 +1,5 @@
 # 保留 header 大小写
 
-import FileBlock from '@site/src/components/FileBlock';
-
 ## 背景
 
 Envoy 默认会将 header 统一转换为小写，HTTP 的 RFC 规范也要求应用不能对 header 大小写敏感，所以正常情况下没什么问题。

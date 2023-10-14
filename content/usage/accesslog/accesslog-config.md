@@ -1,9 +1,5 @@
 # 配置 accesslog
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import FileBlock from '@site/src/components/FileBlock';
-
 本文介绍如何配置 istio 的 accesslog。
 
 ## 全局配置方法
