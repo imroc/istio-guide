@@ -92,9 +92,9 @@ const config = {
       // algolia 搜索功能
       algolia: {
         appId: 'OOTHS47ZW2',
-        apiKey: 'b92c38af84807fd88337dd74a4ec534d',
+        apiKey: '5d043edc32ada7f31ef29395f39ee554',
         indexName: 'imroc-istio',
-        contextualSearch: true,
+        contextualSearch: false,
       },
       // giscus 评论功能
       giscus: {
