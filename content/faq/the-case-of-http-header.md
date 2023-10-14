@@ -65,7 +65,7 @@ spec:
 
 ## 最佳实践: 使用 EnvoyFilter 指定 Header 规则为首字母大写
 
-参考[实用 EnvoyFilter: 保留 header 大小写](../envoyfilter/preserve-case.md)
+参考[实用 EnvoyFilter: 保留 header 大小写](../usage/preserve-case.md)
 
 ## 建议
 

@@ -95,9 +95,6 @@ const config = {
         apiKey: '5d043edc32ada7f31ef29395f39ee554',
         indexName: 'imroc-istio',
         contextualSearch: false,
-        searchParameters: {
-          facetFilters: [],
-        },
       },
       // giscus 评论功能
       giscus: {
