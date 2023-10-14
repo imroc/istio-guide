@@ -90,12 +90,12 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       // algolia 搜索功能
-      // algolia: {
-      //   appId: 'ZYXQ3PWXL9',
-      //   apiKey: '69800e3da186c48e981785d47ee09e6e',
-      //   indexName: 'imroc',
-      //   contextualSearch: true,
-      // },
+      algolia: {
+        appId: 'OOTHS47ZW2',
+        apiKey: 'b92c38af84807fd88337dd74a4ec534d',
+        indexName: 'imroc-istio',
+        contextualSearch: true,
+      },
       // giscus 评论功能
       giscus: {
         repo: 'imroc/istio-guide',
