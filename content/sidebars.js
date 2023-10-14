@@ -75,6 +75,11 @@ const sidebars = {
         'usage/cors',
         'usage/iphash',
         'usage/websocket',
+        'usage/preserve-case',
+        'usage/enable-gzip',
+        'usage/limit-request-size',
+        'usage/label-traffic',
+        'usage/ratelimit',
       ],
     },
     {
@@ -91,22 +96,6 @@ const sidebars = {
         'trick/hide-server-header',
         'trick/debug',
         'trick/customize-proxy-loglevel',
-      ],
-    },
-    {
-      type: 'category',
-      label: '实用 EnvoyFilter',
-      collapsed: true,
-      link: {
-        type: 'generated-index',
-        slug: '/envoyfilter'
-      },
-      items: [
-        'envoyfilter/preserve-case',
-        'envoyfilter/enable-gzip',
-        'envoyfilter/limit-request-size',
-        'envoyfilter/label-traffic',
-        'envoyfilter/ratelimit',
       ],
     },
     {

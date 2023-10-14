@@ -71,7 +71,6 @@ istio 的 text accesslog 配置格式见 [源码](https://github.com/istio/istio
 [%START_TIME%] "%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%" %RESPONSE_CODE% %RESPONSE_FLAGS% %RESPONSE_CODE_DETAILS% %CONNECTION_TERMINATION_DETAILS% "%UPSTREAM_TRANSPORT_FAILURE_REASON%" %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% "%REQ(X-FORWARDED-FOR)%" "%REQ(USER-AGENT)%" "%REQ(X-REQUEST-ID)%" "%REQ(:AUTHORITY)%" "%UPSTREAM_HOST%" %UPSTREAM_CLUSTER% %UPSTREAM_LOCAL_ADDRESS% %DOWNSTREAM_LOCAL_ADDRESS% %DOWNSTREAM_REMOTE_ADDRESS% %REQUESTED_SERVER_NAME% %ROUTE_NAME%
 ```
 
-
 ## 部分 workload 启用 accesslog
 
 在生产环境中，有时我们不想全局启用 accesslog，我们可以利用 EnvoyFilter 来实现只为部分 namespace 或 workload 启用 accesslog，参考 [为指定 workload 动态启动 accesslog](./enable-accesslog-for-workload.md) 。
@@ -80,3 +79,4 @@ istio 的 text accesslog 配置格式见 [源码](https://github.com/istio/istio
 ## 参考资料
 
 * [istio 官方文档给出的常见变量的示例](https://istio.io/latest/docs/tasks/observability/logs/access-log/#default-access-log-format)
+* [Envoy Access Log 变量参考](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log/usage#command-operators)
