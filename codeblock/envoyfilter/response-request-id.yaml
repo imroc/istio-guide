@@ -36,7 +36,6 @@ spec:
                    metadata:set("envoy.filters.http.lua", "req.x-request-id", rid)
                  end
               end
-
               function envoy_on_response(handle)
                  local metadata = handle:streamInfo():dynamicMetadata():get("envoy.filters.http.lua")
                  local rid = metadata["req.x-request-id"]
