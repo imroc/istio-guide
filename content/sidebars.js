@@ -80,6 +80,7 @@ const sidebars = {
         'usage/limit-request-size',
         'usage/label-traffic',
         'usage/ratelimit',
+        'usage/response-request-id',
       ],
     },
     {
