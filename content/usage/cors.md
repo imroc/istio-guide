@@ -6,7 +6,7 @@
 
 Istio 中通过配置 VirtualService 的 corsPolicy 可以实现跨域支持，示例:
 
-<FileBlock file="istio/vs-cors-regex.yaml" />
+<FileBlock showLineNumbers file="istio/vs-cors-regex.yaml" />
 
 * 关键配置在于 `allowOrigins`，表示允许带哪些 Origin 地址的请求。
 * 若有多个域名，使用 `regex` 匹配，`|` 符号分隔。
