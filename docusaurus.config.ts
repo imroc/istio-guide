@@ -123,6 +123,10 @@ const config: Config = {
                 label: 'Kubernetes 实践指南',
                 href: 'https://imroc.cc/kubernetes',
               },
+              {
+                label: 'TKE 实践指南',
+                href: 'https://imroc.cc/tke',
+              },
             ],
           },
           {
