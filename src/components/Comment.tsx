@@ -1,6 +1,5 @@
 import React from 'react'
 import { useThemeConfig, useColorMode } from '@docusaurus/theme-common'
-import BrowserOnly from '@docusaurus/BrowserOnly'
 import Giscus, { GiscusProps } from '@giscus/react'
 import { useLocation } from '@docusaurus/router';
 
@@ -41,8 +40,6 @@ export default function Comment(): JSX.Element {
     useColorMode().colorMode === 'dark' ? 'transparent_dark' : 'light'
 
   return (
-    <BrowserOnly fallback={<div>评论加载中...</div>}>
-      {() => <Giscus {...giscus} />}
-    </BrowserOnly>
+    <Giscus {...giscus} />
   )
 }
