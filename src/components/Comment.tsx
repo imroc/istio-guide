@@ -11,7 +11,7 @@ const defaultConfig: Partial<GiscusProps> = {
   emitMetadata: '0',
   inputPosition: 'top',
   loading: 'lazy',
-  strict: '0',
+  strict: '1',
   lang: 'zh-CN',
 }
 
