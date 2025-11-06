@@ -1,5 +1,7 @@
 import PrismDark from './src/utils/prismDark';
 import type { Config } from '@docusaurus/types';
+import type * as Preset from '@docusaurus/preset-classic';
+
 const beian = '蜀ICP备2021009081号-1'
 
 const config: Config = {
@@ -16,7 +18,6 @@ const config: Config = {
   projectName: 'istio-guide', // Github repo 名称
 
   onBrokenLinks: 'warn', // 避免路径引用错误导致编译失败
-  onBrokenMarkdownLinks: 'warn',
 
   i18n: {
     // 默认语言用中文
@@ -50,137 +51,127 @@ const config: Config = {
         ],
       },
     ],
-    [
-      /** @type {import('@docusaurus/plugin-content-docs').PluginOptions} */
-      '@docusaurus/plugin-content-docs',
-      ({
-        id: 'istio',
-        path: 'content',
-        // 文档的路由前缀
-        routeBasePath: '/',
-        // 左侧导航栏的配置
-        sidebarPath: require.resolve('./content/sidebars.ts'),
-        // 每个文档左下角 "编辑此页" 的链接
-        editUrl: ({ docPath }) =>
-          `https://github.com/imroc/istio-guide/edit/main/content/${docPath}`,
-      }),
-    ],
   ],
 
   presets: [
     [
       'classic',
-      /** @type {import('@docusaurus/preset-classic').Options} */
-      ({
-        docs: false, // 禁用 preset 默认的 docs，直接用 plugin-content-docs 配置可以更灵活。
+      {
+        docs: {
+          // 文档的路由前缀
+          routeBasePath: '/',
+          // 左侧导航栏的配置
+          sidebarPath: require.resolve('./sidebars.ts'),
+          // 每个文档左下角 "编辑此页" 的链接
+          editUrl: ({ docPath }) =>
+            `https://github.com/imroc/istio-guide/edit/main/docs/${docPath}`,
+        },
         blog: false, // 禁用博客
         theme: {
           customCss: require.resolve('./src/css/custom.scss'), // custom.css 重命名为 custom.scss
         },
-      }),
+      } satisfies Preset.Options,
     ],
   ],
 
-  themeConfig:
-    /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
-    ({
-      // algolia 搜索功能
-      algolia: {
-        appId: 'OOTHS47ZW2',
-        apiKey: '5d043edc32ada7f31ef29395f39ee554',
-        indexName: 'imroc-istio',
-        contextualSearch: false,
+  themeConfig: {
+    // algolia 搜索功能
+    algolia: {
+      appId: 'OOTHS47ZW2',
+      apiKey: '5d043edc32ada7f31ef29395f39ee554',
+      indexName: 'imroc-istio',
+      contextualSearch: false,
+    },
+    // giscus 评论功能
+    giscus: {
+      repo: 'imroc/istio-guide',
+      repoId: 'R_kgDOHFP9XQ',
+      category: 'General',
+      categoryId: 'DIC_kwDOHFP9Xc4COUDN',
+    },
+    navbar: {
+      title: 'istio 实践指南', // 左上角的电子书名称
+      logo: {
+        alt: 'istio',
+        src: 'img/logo.svg', // 电子书 logo 文件，注意替换
       },
-      // giscus 评论功能
-      giscus: {
-        repo: 'imroc/istio-guide',
-        repoId: 'R_kgDOHFP9XQ',
-        category: 'General',
-        categoryId: 'DIC_kwDOHFP9Xc4COUDN',
-      },
-      navbar: {
-        title: 'istio 实践指南', // 左上角的电子书名称
-        logo: {
-          alt: 'istio',
-          src: 'img/logo.svg', // 电子书 logo 文件，注意替换
+      items: [
+        {
+          href: 'https://github.com/imroc/istio-guide', // 改成自己的仓库地址
+          label: 'GitHub',
+          position: 'right',
         },
-        items: [
-          {
-            href: 'https://github.com/imroc/istio-guide', // 改成自己的仓库地址
-            label: 'GitHub',
-            position: 'right',
-          },
-        ],
-      },
-      // 自定义页脚
-      footer: {
-        style: 'dark',
-        links: [
-          {
-            title: '相关电子书',
-            items: [
-              {
-                label: 'Kubernetes 实践指南',
-                href: 'https://imroc.cc/kubernetes',
-              },
-              {
-                label: 'TKE 实践指南',
-                href: 'https://imroc.cc/tke',
-              },
-            ],
-          },
-          {
-            title: '更多',
-            items: [
-              {
-                label: 'roc 云原生',
-                href: 'https://imroc.cc',
-              },
-              {
-                label: 'GitHub',
-                href: 'https://github.com/imroc/istio-guide',
-              },
-            ],
-          },
-        ],
-        copyright: `Copyright ${new Date().getFullYear()} roc | All Right Reserved | <a href="http://beian.miit.gov.cn/">${beian}</a>`,
-      },
-      // 自定义代码高亮
-      prism: {
-        theme: PrismDark,
-        magicComments: [
-          {
-            className: 'code-block-highlighted-line',
-            line: 'highlight-next-line',
-            block: { start: 'highlight-start', end: 'highlight-end' }
-          },
-          {
-            className: 'code-block-add-line',
-            line: 'highlight-add-line',
-            block: { start: 'highlight-add-start', end: 'highlight-add-end' }
-          },
-          {
-            className: 'code-block-update-line',
-            line: 'highlight-update-line',
-            block: { start: 'highlight-update-start', end: 'highlight-update-end' }
-          },
-          {
-            className: 'code-block-error-line',
-            line: 'highlight-error-line',
-            block: { start: 'highlight-error-start', end: 'highlight-error-end' }
-          },
-        ],
-        // languages enabled by default: https://github.com/FormidableLabs/prism-react-renderer/blob/master/packages/generate-prism-languages/index.ts#L9-L23
-        // prism supported languages: https://prismjs.com/#supported-languages
-        additionalLanguages: [
-          'java',
-          'json',
-          'hcl',
-          'bash',
-          'diff',
-        ],
-      },
-    }),
+      ],
+    },
+    // 自定义页脚
+    footer: {
+      style: 'dark',
+      links: [
+        {
+          title: '相关电子书',
+          items: [
+            {
+              label: 'Kubernetes 实践指南',
+              href: 'https://imroc.cc/kubernetes',
+            },
+            {
+              label: 'TKE 实践指南',
+              href: 'https://imroc.cc/tke',
+            },
+          ],
+        },
+        {
+          title: '更多',
+          items: [
+            {
+              label: 'roc 云原生',
+              href: 'https://imroc.cc',
+            },
+            {
+              label: 'GitHub',
+              href: 'https://github.com/imroc/istio-guide',
+            },
+          ],
+        },
+      ],
+      copyright: `Copyright ${new Date().getFullYear()} roc | All Right Reserved | <a href="http://beian.miit.gov.cn/">${beian}</a>`,
+    },
+    // 自定义代码高亮
+    prism: {
+      theme: PrismDark,
+      magicComments: [
+        {
+          className: 'code-block-highlighted-line',
+          line: 'highlight-next-line',
+          block: { start: 'highlight-start', end: 'highlight-end' }
+        },
+        {
+          className: 'code-block-add-line',
+          line: 'highlight-add-line',
+          block: { start: 'highlight-add-start', end: 'highlight-add-end' }
+        },
+        {
+          className: 'code-block-update-line',
+          line: 'highlight-update-line',
+          block: { start: 'highlight-update-start', end: 'highlight-update-end' }
+        },
+        {
+          className: 'code-block-error-line',
+          line: 'highlight-error-line',
+          block: { start: 'highlight-error-start', end: 'highlight-error-end' }
+        },
+      ],
+      // languages enabled by default: https://github.com/FormidableLabs/prism-react-renderer/blob/master/packages/generate-prism-languages/index.ts#L9-L23
+      // prism supported languages: https://prismjs.com/#supported-languages
+      additionalLanguages: [
+        'java',
+        'json',
+        'hcl',
+        'bash',
+        'diff',
+      ],
+    },
+  } satisfies Preset.ThemeConfig,
 };
 
 export default config;
